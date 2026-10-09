@@ -1,4 +1,4 @@
-# O CamelModel é pra fazer o Python usar preco_centavos e o JSON mostrar precoCentavos, como pedido no roteiro. E convenhamos, fica mais bonitinho também.
+# O CamelModel é pra fazer o Python usar preco_centavos e o JSON mostrar precoCentavos como pedido no roteiro.
 
 from pydantic import BaseModel, ConfigDict
 from pydantic.alias_generators import to_camel
