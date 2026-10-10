@@ -1,6 +1,8 @@
 from sqlalchemy import func, select
-from app.domain.models import CardapioItem, Estoque, Produto, Unidade
+from app.domain.models import CardapioItem, Estoque, Produto, Unidade, Usuario
 from app.infraestrutura.database import Base, SessionLocal, engine
+from app.infraestrutura.security import hash_senha
+
 
 def popular():
     Base.metadata.create_all(engine)
@@ -20,6 +22,10 @@ def popular():
             for p in produtos:
                 db.add(CardapioItem(unidade_id=u.id, produto_id=p.id, preco_centavos=p.preco_base_centavos))
                 db.add(Estoque(unidade_id=u.id, produto_id=p.id, quantidade=50))
+
+
+        db.add(Usuario(nome="Admnistrador", email="admin@raizes.com", senha_hash=hash_senha("Admin@123"), perfil="ADMIN"))
+        
         db.commit()
         print("Banco populado com sucesso!")
 

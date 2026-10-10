@@ -1,7 +1,7 @@
 from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from app.infraestrutura.database import Base
+from app.domain.enums import Perfil
 
 class Unidade(Base):
     __tablename__ = "unidades"
@@ -39,3 +39,14 @@ class Estoque(Base):
     produto_id: Mapped[int] = mapped_column(ForeignKey("produtos.id"))
     quantidade: Mapped[int] = mapped_column(default=0)
     __table_args__ = (UniqueConstraint("unidade_id", "produto_id", name="uq_estoque_unidade_produto"), CheckConstraint("quantidade >= 0", name="ck_estoque_quantidade"))
+
+
+class Usuario(Base):
+    __tablename__ = "usuarios"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nome: Mapped[str] = mapped_column(String(120))
+    email: Mapped[str] = mapped_column(String(160), unique=True)
+    senha_hash: Mapped[str] = mapped_column(String(100))
+    perfil: Mapped[str] = mapped_column(String(10), default=Perfil.CLIENTE.value)
+    ativo: Mapped[bool] = mapped_column(default=True)
+    
