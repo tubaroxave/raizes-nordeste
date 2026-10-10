@@ -18,7 +18,7 @@ class CardapioItemOut(CamelModel):
 class RegistroIn(CamelModel):
     nome: str = Field(min_length=2, max_length=120)
     email: EmailStr
-    senha: str = Field(min_length=8, max_lenght=72)
+    senha: str = Field(min_length=8, max_length=72)
     aceite_termos: bool
 
 class LoginIn(CamelModel):

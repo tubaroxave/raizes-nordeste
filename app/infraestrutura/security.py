@@ -15,5 +15,5 @@ def criar_token(usuario_id: int, perfil: str) -> str:
     return jwt.encode(dados, JWT_SECRET, algorithm="HS256")
 
 def decodificar_token(token: str) -> dict:
-    return jwt.decode(token, JWT_SECRET, algorithms=["H256"])
+    return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
 
