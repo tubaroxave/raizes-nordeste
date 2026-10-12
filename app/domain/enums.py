@@ -6,4 +6,10 @@ class Perfil(str, Enum):
     COZINHA = "COZINHA"
     GERENTE = "GERENTE"
     ADMIN = "ADMIN"
-    
+
+class TipoMovimento(str, Enum):
+    ENTRADA = 'ENTRADA'
+    SAIDA = 'SAIDA'
+
+
+

@@ -1,7 +1,7 @@
 # O CamelModel é pra fazer o Python usar preco_centavos e o JSON mostrar precoCentavos como pedido no roteiro.
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from pydantic.alias_generators import to_camel
-from app.domain.enums import Perfil
+from app.domain.enums import Perfil, TipoMovimento
 from typing import Generic, TypeVar
 
 T = TypeVar('T')
@@ -74,3 +74,16 @@ class ProdutoOut(CamelModel):
 class CardapioItemIn(CamelModel):
     preco_centavos: int = Field(ge=0)
     disponível: bool = True
+
+class MovimentoIn(CamelModel):
+    unidade_id: int
+    produto_id: int
+    tipo: TipoMovimento
+    quantidade: int = Field(gt=0, le=10000)
+    motivo: str = Field(default='Ajuste manual', max_length=120)
+
+class EstoqueOut(CamelModel):
+    unidade_id: int
+    produto_id: int
+    nome: str
+    quantidade: int

@@ -2,6 +2,7 @@ from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.infraestrutura.database import Base
 from app.domain.enums import Perfil
+from datetime import datetime, timezone
 
 class Unidade(Base):
     __tablename__ = "unidades"
@@ -49,4 +50,21 @@ class Usuario(Base):
     senha_hash: Mapped[str] = mapped_column(String(100))
     perfil: Mapped[str] = mapped_column(String(10), default=Perfil.CLIENTE.value)
     ativo: Mapped[bool] = mapped_column(default=True)
+
+def agora() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+#Histórico do estoque...
+class MovimentoEstoque(Base):
+    __tablename__ = 'movimentos_estoque'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    unidade_id: Mapped[int] = mapped_column(ForeignKey('unidades.id'))
+    produto_id: Mapped[int] = mapped_column(ForeignKey('produtos.id'))
+    tipo: Mapped[str] = mapped_column(String(10))
+    quantidade: Mapped[int]
+    motivo: Mapped[str] = mapped_column(String(120))
+    usuario_id: Mapped[int | None] = mapped_column(ForeignKey('usuarios.id'))
+    criado_em: Mapped[datetime] = mapped_column(default=agora)
+    __table_args__ = (CheckConstraint('quantidade > 0', name='ck_movimento_quantidade'),)
     
