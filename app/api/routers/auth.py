@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from app.domain.errors import AppError
+from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -13,10 +14,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register", response_model=UsuarioOut, status_code=201)
 def registrar(dados: RegistroIn, db: Session = Depends(get_db)):
     if not dados.aceite_termos:
-        raise HTTPException(422, "É preciso aceitar os termos de uso.")
+        raise AppError(422, 'TERMOS_NAO_ACEITOS', "É preciso aceitar os termos de uso.")
     email = dados.email.lower()
     if db.scalar(select(Usuario).where(Usuario.email == email)):
-        raise HTTPException(409, "Esse email já foi cadastrado.")
+        raise AppError(409, 'EMAIL_JA_CADASTRADO', "Esse email já foi cadastrado.")
     usuario = Usuario(nome=dados.nome, email=email, senha_hash=hash_senha(dados.senha))
     db.add(usuario)
     db.commit()
@@ -27,5 +28,5 @@ def registrar(dados: RegistroIn, db: Session = Depends(get_db)):
 def login(dados: LoginIn, db: Session = Depends(get_db)):
     usuario = db.scalar(select(Usuario).where(Usuario.email == dados.email.lower()))
     if not usuario or not usuario.ativo or not conferir_senha(dados.senha, usuario.senha_hash):
-        raise HTTPException(401,"Email ou senha inválidos.")
+        raise AppError(401, 'CREDENCIAIS_INVALIDAS', "Email ou senha inválidos.")
     return TokenOut(access_token=criar_token(usuario.id, usuario.perfil), expires_in=ACCESS_TOKEN_MINUTES * 60, user=UsuarioOut.model_validate(usuario))

@@ -24,7 +24,16 @@ def popular():
                 db.add(Estoque(unidade_id=u.id, produto_id=p.id, quantidade=50))
 
 
-        db.add(Usuario(nome="Admnistrador", email="admin@raizes.com", senha_hash=hash_senha("Admin@123"), perfil="ADMIN"))
+        equipe = [
+
+            ('Admnistrador', 'admin@raizes.com', 'Admin@123', 'ADMIN'),
+            ('Gerente DEMO', 'gerente@raizes.com', 'Gerente@123', 'GERENTE'),
+            ('Atendente DEMO', 'atendente@raizes.com', 'Atendente@123', 'ATENDENTE'),
+            ('Cozinha DEMO', 'cozinha@raizes.com', 'Cozinha@123', 'COZINHA'),
+            ('Cliente DEMO', 'cliente@raizes.com', 'Cliente@123', 'CLIENTE'),
+ ]
+        for nome, email, senha, perfil in equipe:
+            db.add(Usuario(nome=nome, email=email, senha_hash=hash_senha(senha), perfil=perfil))  
         
         db.commit()
         print("Banco populado com sucesso!")
