@@ -4,6 +4,7 @@ from app.domain.maquina_estados import TRANSICOES, validar_transicao
 from app.domain.models import Pagamento, Pedido
 from app.infraestrutura import gateway_pagamento
 from app.infraestrutura.gateway_pagamento import GatewayTimeout
+from app.application.fidelidade import acumular_pontos
 
 MAX_TENTATIVAS = 2
 
@@ -28,4 +29,6 @@ def pagar_pedido(db: Session, pedido: Pedido, metodo: str, simular: str) -> Paga
     pagamento = Pagamento(status=resposta['status'], transacao_id=resposta['transacaoId'], payload=resposta, **base)
     db.add(pagamento)
     pedido.status = novo_status
+    if novo_status == 'PAGO':
+        acumular_pontos(db, pedido)
     return pagamento

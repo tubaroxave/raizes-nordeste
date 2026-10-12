@@ -40,3 +40,11 @@ class SimulacaoGateway(str, Enum):
     RECUSADO = 'RECUSADO'
     TIMEOUT = "TIMEOUT"
     TIMEOUT_UMA_VEZ = "TIMEOUT_UMA_VEZ" #Falha na primeira e aí funciona na segunda
+
+
+class TipoCupom(str, Enum):
+    PERCENTUAL = 'PERCENTUAL'
+    FIXO = 'FIXO'
+
+class FinalidadeConsentimento(str, Enum):
+    FIDELIDADE = "FIDELIDADE"

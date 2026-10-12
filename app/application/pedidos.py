@@ -7,6 +7,7 @@ from app.domain.errors import AppError
 from app.domain.models import CardapioItem, Pedido, PedidoItem, Usuario
 from app.application.estoque import registrar_entrada, registrar_saida
 from app.domain.maquina_estados import validar_transicao
+from app.application.cupons import aplicar_cupom
 
 def buscar_pedido(db: Session, pedido_id: int, usuario: Usuario) -> Pedido:
     pedido = db.get(Pedido, pedido_id)
@@ -15,12 +16,13 @@ def buscar_pedido(db: Session, pedido_id: int, usuario: Usuario) -> Pedido:
     return pedido
 
 def criar_pedido(db: Session, *, unidade_id: int, canal: str, items: dict[int, int],
-                 cliente_id: int | None) -> Pedido:
+                 cliente_id: int | None, cupom_codigo= str | None) -> Pedido:
     unidade_ou_404(db,unidade_id)
     pedido = Pedido(
         unidade_id=unidade_id,
         cliente_id=cliente_id,
-        canal_pedido=canal
+        canal_pedido=canal,
+        
     )
     db.add(pedido)
     db.flush()
@@ -76,8 +78,11 @@ def criar_pedido(db: Session, *, unidade_id: int, canal: str, items: dict[int, i
 
     subtotal += preco_unitario * quantidade
 
+    desconto = aplicar_cupom(db, cupom_codigo, subtotal, cliente_id) if cupom_codigo else 0
     pedido.subtotal_centavos = subtotal
-    pedido.total_centavos = subtotal
+    pedido.desconto_centavos = desconto
+    pedido.cupom_codigo = cupom_codigo.strip().upper() if cupom_codigo else None
+    pedido.total_centavos = subtotal - desconto
 
     return pedido
 

@@ -2,7 +2,7 @@ from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint, JS
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.infraestrutura.database import Base
 from app.domain.enums import Perfil, StatusPedido
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 class Unidade(Base):
     __tablename__ = "unidades"
@@ -121,3 +121,38 @@ class Pagamento(Base):
     tentativas: Mapped[int] = mapped_column(default=1)
     payload: Mapped[dict] = mapped_column(JSON) #resposta do gateway
     criado_em: Mapped[datetime] = mapped_column(default=agora)
+#LGPD
+class Consentimento(Base):
+    __tablename__ = 'consentimentos'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(ForeignKey('usuarios.id'))
+    finalidade: Mapped[str] = mapped_column(String(30))
+    aceito: Mapped[bool]
+    versao_termo: Mapped[str] = mapped_column(String(10))
+    ip: Mapped[str | None] = mapped_column(String(45))
+    criado_em: Mapped[datetime] = mapped_column(default=agora)
+#Extrato de pontos.... lá vamos nós.
+class PontosMovimento(Base):
+    __tablename__ = 'pontos_movimentos'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(ForeignKey('usuarios.id'))
+    pontos: Mapped[int]
+    motivo: Mapped[str] = mapped_column(String(120))
+    pedido_id: Mapped[int | None] = mapped_column(ForeignKey('pedidos.id'))
+    criado_em: Mapped[datetime] = mapped_column(default=agora)
+
+class Cupom(Base):
+    __tablename__ = 'cupons'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    codigo: Mapped[str] = mapped_column(String(30), unique=True)
+    tipo: Mapped[str] = mapped_column(String(10)) #Percentual ou fixo
+    valor: Mapped[int] #percentual ou centavos
+    valido_ate: Mapped[date]
+    ativo: Mapped[bool] = mapped_column(default=True)
+    limite_usos: Mapped[int | None]
+    usos: Mapped[int] = mapped_column(default=0)
+    usuario_id: Mapped[int | None] = mapped_column(ForeignKey('usuarios.id')) #cupom exclusivo de UM cliente (pra não sair repetindo)
+    __table_args__ = (CheckConstraint('valor >0', name ='ck_cupom_valor'),)

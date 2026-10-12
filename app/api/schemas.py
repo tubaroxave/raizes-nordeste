@@ -1,9 +1,9 @@
-# O CamelModel é pra fazer o Python usar preco_centavos e o JSON mostrar precoCentavos como pedido no roteiro.
+# O CamelModel é pra formatação dos resultados, como pedido no roteiro.
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from pydantic.alias_generators import to_camel
-from app.domain.enums import Perfil, TipoMovimento, CanalPedido, MetodoPagamento, SimulacaoGateway, StatusPedido
+from app.domain.enums import Perfil, TipoMovimento, CanalPedido, MetodoPagamento, SimulacaoGateway, StatusPedido, FinalidadeConsentimento, TipoCupom
 from typing import Generic, TypeVar
-from datetime import datetime
+from datetime import datetime, date
 
 T = TypeVar('T')
 
@@ -98,6 +98,7 @@ class PedidoIn(CamelModel):
     unidade_id: int
     canal_pedido: CanalPedido 
     itens: list[ItemPedidoIn] = Field(min_length=1)
+    cupom_codigo: str | None = Field(default=None, max_lenght=30)
 
 class ItemPedidoOut(CamelModel):
     produto_id:int
@@ -134,3 +135,36 @@ class PagamentoOut(CamelModel):
     transacao_id: str | None
     tentativas: int
     pedido_status: str
+
+class ConsentimentoIn(CamelModel):
+    finalidade: FinalidadeConsentimento
+    aceito: bool
+    versao_termo: str = Field(min_length=1, max_length=10)
+
+class ConsentimentoOut(CamelModel):
+    finalidade: str
+    aceito: bool
+    versao_termo: str
+    criado_em: datetime
+
+class SaldoOut(CamelModel):
+    pontos: int
+    consentimento_fidelidade: bool
+
+class ResgateIn(CamelModel):
+    pontos: int = Field(ge=100, le=100000)
+
+class CupomIn(CamelModel):
+    codigo: str = Field(min_length=3, max_length=30)
+    tipo: TipoCupom
+    valor: int = Field(gt=0)
+    valido_ate: date
+    limite_usos: int | None = Field(default=None, ge=1)
+
+class CupomOut(CamelModel):
+    codigo: str
+    tipo: str
+    valor: int
+    valido_ate: date
+    usos: int
+    limite_usos: int | None
