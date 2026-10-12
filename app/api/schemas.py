@@ -168,3 +168,13 @@ class CupomOut(CamelModel):
     valido_ate: date
     usos: int
     limite_usos: int | None
+
+class AuditoriaOut(CamelModel):
+    id: int
+    usuario_id: int | None
+    acao: str
+    entidade: str
+    entidade_id: int | None
+    detalhe: str
+    ip: str | None
+    criado_em: datetime

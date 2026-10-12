@@ -156,3 +156,14 @@ class Cupom(Base):
     usos: Mapped[int] = mapped_column(default=0)
     usuario_id: Mapped[int | None] = mapped_column(ForeignKey('usuarios.id')) #cupom exclusivo de UM cliente (pra não sair repetindo)
     __table_args__ = (CheckConstraint('valor >0', name ='ck_cupom_valor'),)
+
+class AuditLog(Base):
+    __tablename__ = 'audit_logs'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    usuario_id: Mapped[int | None] = mapped_column(ForeignKey('usuarios.id'))
+    acao: Mapped[str] = mapped_column(String(40))
+    entidade: Mapped[str] = mapped_column(String(30))
+    entidade_id: Mapped[int | None]
+    detalhe: Mapped[str | None] = mapped_column(String(45))
+    criado_em: Mapped[datetime] = mapped_column(default=agora)

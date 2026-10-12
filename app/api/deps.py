@@ -1,5 +1,5 @@
 import jwt
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from app.domain.enums import Perfil
@@ -30,6 +30,10 @@ def exigir(*perfis):
             raise AppError(403, 'SEM_PERMISSAO', "Seu perfil não tem permissão para este recurso.")
         return usuario
     return dependencia
+
+
+def ip_do_cliente(request: Request) -> str | None:
+    return request.client.host if request.client else None
 
 #ATALHOS (Que eu deveria ter pensado logo de cara talvez.)
 SO_GESTAO = Depends(exigir(Perfil.GERENTE, Perfil.ADMIN))

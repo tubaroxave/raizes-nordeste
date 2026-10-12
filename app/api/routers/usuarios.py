@@ -8,6 +8,7 @@ from app.domain.models import Usuario, Consentimento, Cupom
 from app.infraestrutura.database import get_db
 from app.infraestrutura.security import hash_senha
 import secrets
+from app.application.auditoria import registrar
 
 router = APIRouter(prefix="/usuarios", tags=["usuarios"])
 
@@ -30,6 +31,14 @@ def criar_usuario_da_equipe(dados: UsuarioEquipeIn, db: Session = Depends(get_db
 def alterar_consentimento(dados: ConsentimentoIn, request: Request, db: Session = Depends(get_db), usuario: Usuario = Depends(exigir(Perfil.CLIENTE))):
     registro = Consentimento(usuario_id=usuario.id, finalidade=dados.finalidade.value, aceito=dados.aceito, versao_termo=dados.versao_termo, ip=request.client.host if request.client else None)
     db.add(registro)
+    registrar(
+        db,
+        acao='CONSENTIMENTO_ALTERADO',
+        entidade='consentimento',
+        usuario_id=usuario.id,
+        detalhe=f'{dados.finalidade.value} aceito={dados.aceito}'
+    )
+
     db.commit()
     db.refresh(registro)
     return registro
@@ -43,4 +52,12 @@ def excluir_minha_conta(db: Session = Depends(get_db), usuario: Usuario = Depend
     for consentimento in db.scalars(select(Consentimento).where(Consentimento.usuario_id == usuario.id)):
         consentimento.ip = None
     db.execute(update(Cupom).where(Cupom.usuario_id == usuario.id).values(ativo=False))
+    registrar(
+        db,
+        acao='CONTA_ANONIMIZADA',
+        entidade='usuario',
+        entidade_id=usuario.id,
+        usuario_id=usuario.id
+    )
+
     db.commit()

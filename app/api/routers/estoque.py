@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from app.api.deps import EQUIPE, SO_GESTAO
+from app.api.deps import EQUIPE, SO_GESTAO, ip_do_cliente
 from app.api.schemas import EstoqueOut, MovimentoIn
 from app.application.catalogo import produto_ou_404, unidade_ou_404
 from app.application.estoque import registrar_entrada, registrar_saida
 from app.domain.enums import TipoMovimento
 from app.domain.models import Estoque, Produto, Usuario
 from app.infraestrutura.database import get_db
+from app.application.auditoria import registrar
 
 router = APIRouter(prefix='/estoque', tags=['estoque'])
 
@@ -21,13 +22,26 @@ def saldo_da_unidade(unidade_id: int, db: Session = Depends(get_db)):
             for e, nome in linhas]
 
 @router.post('/movimentos', response_model=EstoqueOut, status_code=201)
-def movimentar(dados: MovimentoIn, db: Session = Depends(get_db), usuario:Usuario = SO_GESTAO):
+def movimentar(dados: MovimentoIn, request: Request, db: Session = Depends(get_db), usuario:Usuario = SO_GESTAO):
     unidade_ou_404(db, dados.unidade_id)
     produto = produto_ou_404(db, dados.produto_id)
     if dados.tipo == TipoMovimento.ENTRADA:
         registrar_entrada(db, dados.unidade_id, dados.produto_id, dados.quantidade, dados.motivo, usuario.id)
     else:
         registrar_saida(db, dados.unidade_id, dados.produto_id, dados.quantidade, dados.motivo, usuario.id)
+
+    registrar(
+
+        db,
+        acao='ESTOQUE_MOVIMENTADO',
+        entidade='estoque',
+        entidade_id=dados.produto_id,
+        detalhe=(
+            f'{dados.tipo.value} {dados.quantidade} un '
+            f'doproduto{dados.produto_id}'
+    
+        )
+    )
 
     db.commit()
     saldo = db.scalar(
