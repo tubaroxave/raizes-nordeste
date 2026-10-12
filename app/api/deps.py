@@ -34,4 +34,4 @@ def exigir(*perfis):
 #ATALHOS (Que eu deveria ter pensado logo de cara talvez.)
 SO_GESTAO = Depends(exigir(Perfil.GERENTE, Perfil.ADMIN))
 EQUIPE = Depends(exigir(Perfil.ATENDENTE, Perfil.COZINHA, Perfil.GERENTE, Perfil.ADMIN))
-
+QUEM_PEDE = Depends(exigir(Perfil.CLIENTE, Perfil.ATENDENTE, Perfil.GERENTE, Perfil.ADMIN))

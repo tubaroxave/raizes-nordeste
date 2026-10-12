@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.api.errors import registrar_handlers
-from app.api.routers import auth, produtos, unidades, usuarios, estoque
+from app.api.routers import auth, produtos, unidades, usuarios, estoque, pedidos
 from app.domain import models
 from app.infraestrutura.database import Base, engine
 
@@ -13,6 +13,7 @@ app.include_router(produtos.router)
 app.include_router(auth.router)
 app.include_router(usuarios.router)
 app.include_router(estoque.router)
+app.include_router(pedidos.router)
 
 @app.get('/health')
 def health():
