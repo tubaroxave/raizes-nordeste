@@ -1,7 +1,7 @@
 # O CamelModel é pra fazer o Python usar preco_centavos e o JSON mostrar precoCentavos como pedido no roteiro.
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from pydantic.alias_generators import to_camel
-from app.domain.enums import Perfil, TipoMovimento, CanalPedido
+from app.domain.enums import Perfil, TipoMovimento, CanalPedido, MetodoPagamento, SimulacaoGateway, StatusPedido
 from typing import Generic, TypeVar
 from datetime import datetime
 
@@ -116,3 +116,21 @@ class PedidoOut(CamelModel):
     cupom_codigo: str | None
     criado_em: datetime
     itens: list[ItemPedidoOut]
+
+class StatusIn(CamelModel):
+    status: StatusPedido
+
+class PagamentoIn(CamelModel):
+    pedido_id: int
+    metodo: MetodoPagamento
+    simular: SimulacaoGateway = SimulacaoGateway.APROVADO
+
+class PagamentoOut(CamelModel):
+    id: int
+    pedido_id: int
+    status: str
+    metodo: str
+    valor_centavos: int
+    transacao_id: str | None
+    tentativas: int
+    pedido_status: str

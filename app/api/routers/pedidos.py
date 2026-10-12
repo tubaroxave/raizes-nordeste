@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
-from app.api.deps import QUEM_PEDE, usuario_atual
-from app.api.schemas import Pagina, PedidoIn, PedidoOut
-from app.application.pedidos import buscar_pedido, criar_pedido
+from app.api.deps import EQUIPE, QUEM_PEDE, usuario_atual
+from app.api.schemas import Pagina, PedidoIn, PedidoOut, StatusIn
+from app.application.pedidos import buscar_pedido, criar_pedido, cancelar_pedido
 from app.domain.enums import CanalPedido, Perfil, StatusPedido
 from app.domain.models import Pedido, Usuario
 from app.infraestrutura.database import get_db
+from app.domain.maquina_estados import validar_mudanca_manual
 
 router = APIRouter(prefix='/pedidos', tags=['pedidos'])
 @router.post('', response_model=PedidoOut, status_code=201)
@@ -43,3 +44,21 @@ def listar(canal_pedido: CanalPedido | None = Query(None, alias='canalPedido'),
 @router.get('/{pedido_id}', response_model=PedidoOut)
 def obter(pedido_id: int, db: Session = Depends(get_db), usuario: Usuario = Depends(usuario_atual)):
     return PedidoOut.model_validate(buscar_pedido(db, pedido_id, usuario))
+
+
+@router.patch('/{pedido_id}/status', response_model=PedidoOut)
+def mudar_status(pedido_id: int, dados: StatusIn, db:Session = Depends(get_db), usuario: Usuario = EQUIPE):
+    pedido = buscar_pedido(db, pedido_id, usuario)
+    validar_mudanca_manual(pedido.status, dados.status.value, usuario.perfil)
+    pedido.status = dados.status.value
+    db.commit()
+    db.refresh(pedido)
+    return PedidoOut.model_validate(pedido)
+
+@router.post ('/{pedido_id}/cancelar', response_model=PedidoOut)
+def cancelar(pedido_id: int, db: Session = Depends(get_db), usuario: Usuario = QUEM_PEDE):
+    pedido = buscar_pedido(db, pedido_id, usuario)
+    cancelar_pedido (db, pedido, usuario)
+    db.commit()
+    db.refresh(pedido)
+    return PedidoOut.model_validate(pedido)

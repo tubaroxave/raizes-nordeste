@@ -29,3 +29,14 @@ class StatusPedido(str, Enum):
     PRONTO = 'PRONTO'
     ENTREGUE = 'ENTREGUE'
     CANCELADO = 'CANCELADO'
+
+class MetodoPagamento(str, Enum):
+    PIX = 'PIX'
+    CARTAO_CREDITO = "CARTAO_CREDITO"
+    CARTAO_DEBITO = 'CARTAO_DEBITO'
+
+class SimulacaoGateway(str, Enum):
+    APROVADO = 'APROVADO'
+    RECUSADO = 'RECUSADO'
+    TIMEOUT = "TIMEOUT"
+    TIMEOUT_UMA_VEZ = "TIMEOUT_UMA_VEZ" #Falha na primeira e aí funciona na segunda

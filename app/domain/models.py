@@ -1,4 +1,4 @@
-from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.infraestrutura.database import Base
 from app.domain.enums import Perfil, StatusPedido
@@ -107,3 +107,17 @@ class PedidoItem(Base):
     @property
     def subtotal_centavos(self) -> int:
         return self.quantidade * self.preco_unitario_centavos
+
+
+class Pagamento(Base):
+    __tablename__ = 'pagamentos'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    pedido_id: Mapped[int] = mapped_column(ForeignKey('pedidos.id'))
+    metodo: Mapped[str] = mapped_column(String(20))
+    valor_centavos: Mapped[int]
+    status: Mapped[str] = mapped_column(String(15)) #APROVADO, RECUSADO OU ERRO_GATEWAY
+    transacao_id: Mapped[str | None] = mapped_column(String(60))
+    tentativas: Mapped[int] = mapped_column(default=1)
+    payload: Mapped[dict] = mapped_column(JSON) #resposta do gateway
+    criado_em: Mapped[datetime] = mapped_column(default=agora)

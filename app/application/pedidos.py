@@ -5,7 +5,8 @@ from app.application.estoque import registrar_saida
 from app.domain.enums import Perfil
 from app.domain.errors import AppError
 from app.domain.models import CardapioItem, Pedido, PedidoItem, Usuario
-
+from app.application.estoque import registrar_entrada, registrar_saida
+from app.domain.maquina_estados import validar_transicao
 
 def buscar_pedido(db: Session, pedido_id: int, usuario: Usuario) -> Pedido:
     pedido = db.get(Pedido, pedido_id)
@@ -79,3 +80,12 @@ def criar_pedido(db: Session, *, unidade_id: int, canal: str, items: dict[int, i
     pedido.total_centavos = subtotal
 
     return pedido
+
+
+def cancelar_pedido(db: Session, pedido: Pedido, usuario: Usuario) -> None:
+    if usuario.perfil == Perfil.CLIENTE.value and pedido.status not in ('AGUARDANDO_PAGAMENTO', "PAGAMENTO_RECUSADO"):
+        raise AppError(403, 'CANCELAMENTO_NAO_PERMITIDO', 'Depois do pagamento, só a equipe pode cancelar o pedido.')
+    validar_transicao(pedido.status, 'CANCELADO')
+    for item in pedido.itens:
+        registrar_entrada(db, pedido.unidade_id, item.produto_id, item.quantidade, f'Cancelamento do pedido #{pedido.id}', usuario.id)
+        pedido.status = 'CANCELADO'
