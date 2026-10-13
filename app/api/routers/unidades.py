@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.api.deps import SO_GESTAO
-from app.api.schemas import CardapioItemIn, CardapioItemOut, UnidadeOut
+from app.api.schemas import CardapioItemIn, CardapioItemOut, UnidadeOut, UnidadeIn
 from app.application.catalogo import produto_ou_404, unidade_ou_404
 from app.domain.models import CardapioItem, Produto, Unidade
 from app.infraestrutura.database import get_db
@@ -15,6 +15,18 @@ def para_saida(item: CardapioItem) -> CardapioItemOut:
 @router.get('', response_model=list[UnidadeOut])
 def listar(db: Session = Depends(get_db)):
     return db.scalars(select(Unidade).where(Unidade.ativa.is_(True)).order_by(Unidade.id)).all()
+
+@router.post('', response_model=UnidadeOut, status_code=201, dependencies=[SO_GESTAO])
+def criar_unidade(dados: UnidadeIn, db: Session = Depends(get_db)):
+    unidade = Unidade(
+        nome=dados.nome,
+        cidade=dados.cidade,
+        uf=dados.uf.upper()
+    )
+    db.add(unidade)
+    db.commit()
+    db.refresh(unidade)
+    return unidade
 
 @router.get('/{unidade_id}/cardapio', response_model=list[CardapioItemOut])
 def cardapio(unidade_id: int, db: Session = Depends(get_db)):

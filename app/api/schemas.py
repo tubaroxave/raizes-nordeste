@@ -57,6 +57,11 @@ class UnidadeOut(CamelModel):
     cidade: str
     uf: str
 
+class UnidadeIn(CamelModel):
+    nome: str
+    cidade: str
+    uf: str
+
 class ProdutoIn(CamelModel):
     nome: str = Field(min_length=2, max_length=80)
     categoria: str = Field(min_length=2, max_lenght=30)
