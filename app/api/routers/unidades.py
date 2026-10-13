@@ -32,8 +32,17 @@ def criar_unidade(dados: UnidadeIn, db: Session = Depends(get_db)):
 def cardapio(unidade_id: int, db: Session = Depends(get_db)):
     unidade_ou_404(db, unidade_id)
     items = db.scalars(
-        select(CardapioItem).join(Produto).where(CardapioItem.unidade_id == unidade_id), Produto.ativo.is_(True)).order_by(CardapioItem.id).all()
-    return [para_saida(i) for i in items]
+
+        select(CardapioItem)
+        .join(Produto)
+        .where(
+            CardapioItem.unidade_id == unidade_id,
+            Produto.ativo.is_(True)
+        )
+        .order_by(CardapioItem.id)
+    )   .all()
+    return [para_saida(item) for item in items]
+        
     
 @router.put ('/{unidade_id}/cardapio/{produto_id}', response_model=CardapioItemOut, dependencies=[SO_GESTAO])
 def definir_item_do_cardapio(unidade_id: int, produto_id: int, dados: CardapioItemIn, db: Session = Depends(get_db)):
